@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Dupe Eliminator %28Unmanaged%29</fullName>
+    <types>
+        <members>DynamicSObject</members>
+        <members>MergeRecord</members>
+        <members>MergeRecordTest</members>
+        <members>QueryBuilder</members>
+        <members>SchemaInfo</members>
+        <members>SearchMergeController</members>
+        <members>SearchMergeTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>MergeRecord</members>
+        <members>SearchMerge</members>
+        <name>ApexPage</name>
+    </types>
+    <types>
+        <members>Dupe_Eliminator</members>
+        <name>CustomApplication</name>
+    </types>
+    <types>
+        <members>AccChild__c.Account__c</members>
+        <name>CustomField</name>
+    </types>
+    <types>
+        <members>AccChild__c</members>
+        <name>CustomObject</name>
+    </types>
+    <types>
+        <members>AccChild__c</members>
+        <members>Dupe_Eliminator</members>
+        <name>CustomTab</name>
+    </types>
+    <types>
+        <members>AccChild__c-AccChild Layout</members>
+        <name>Layout</name>
+    </types>
+    <types>
+        <members>AccChild__c.All</members>
+        <name>ListView</name>
+    </types>
+    <version>29.0</version>
+</Package>

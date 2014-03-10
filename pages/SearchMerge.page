@@ -1,0 +1,153 @@
+<apex:page controller="SearchMergeController" title="Dupe Eliminator" tabStyle="Dupe_Eliminator__tab" showHeader="{!NOT(hideHeader)}" sidebar="{!NOT(hideSidebar)}">
+    <apex:form >
+        <apex:pageBlock title="Find Records" id="searchFilter" rendered="{!NOT(hideFilter)}"
+            helpTitle="Dupe Eliminator Help"
+            helpUrl="https://sites.secure.force.com/appexchange/content?contentId=a0K30000002BYXFEA4">
+               <apex:pageBlockSection >
+                   <apex:panelGrid columns="2" cellspacing="20">
+                       <apex:outputLabel value="Select Object" style="font-weight:bold" for="selectObject"/>
+                       <apex:selectList value="{!queryBuilder.objectName}" size="1" id="selectObject">
+                           <apex:selectOptions value="{!queryBuilder.objects}"/>
+                           <apex:actionSupport event="onchange" action="{!resetQuery}" rerender="searchFilter, searchResult"/>
+                        </apex:selectList>
+                   </apex:panelGrid>
+               </apex:pageBlockSection>
+               <apex:pageMessages />
+               <apex:pageBlockSection rendered="{!queryBuilder.objectName != null}">
+                   <apex:panelGrid columns="4" cellspacing="5">
+                       <apex:outputText value="Field" style="font-weight:bold"/>
+                       <apex:outputText value="Operator" style="font-weight:bold"/>
+                       <apex:outputText value="Value" style="font-weight:bold"/>
+                       <apex:outputText value=""/>
+                       <apex:selectList value="{!queryBuilder.fieldName1}" size="1">
+                           <apex:selectOptions value="{!queryBuilder.fields}"/>
+                       </apex:selectList>
+                       <apex:selectList value="{!queryBuilder.operatorValue1}" size="1">
+                           <apex:selectOptions value="{!queryBuilder.operators}"/>
+                       </apex:selectList>
+                       <apex:inputText value="{!queryBuilder.inputValue1}"/>
+                       <apex:outputText value="AND"/>
+                       <apex:selectList value="{!queryBuilder.fieldName2}" size="1">
+                           <apex:selectOptions value="{!queryBuilder.fields}"/>
+                       </apex:selectList>
+                       <apex:selectList value="{!queryBuilder.operatorValue2}" size="1">
+                           <apex:selectOptions value="{!queryBuilder.operators}"/>
+                       </apex:selectList>
+                       <apex:inputText value="{!queryBuilder.inputValue2}"/>
+                       <apex:outputText value="AND"/>
+                       <apex:selectList value="{!queryBuilder.fieldName3}" size="1">
+                           <apex:selectOptions value="{!queryBuilder.fields}"/>
+                       </apex:selectList>
+                       <apex:selectList value="{!queryBuilder.operatorValue3}" size="1">
+                           <apex:selectOptions value="{!queryBuilder.operators}"/>
+                       </apex:selectList>
+                       <apex:inputText value="{!queryBuilder.inputValue3}"/>
+                       <apex:outputText value="AND"/>
+                      <apex:selectList value="{!queryBuilder.fieldName4}" size="1">
+                           <apex:selectOptions value="{!queryBuilder.fields}"/>
+                       </apex:selectList>
+                       <apex:selectList value="{!queryBuilder.operatorValue4}" size="1">
+                           <apex:selectOptions value="{!queryBuilder.operators}"/>
+                       </apex:selectList>
+                       <apex:inputText value="{!queryBuilder.inputValue4}"/>
+                       <apex:outputText value="AND"/>
+                       <apex:selectList value="{!queryBuilder.fieldName5}" size="1">
+                           <apex:selectOptions value="{!queryBuilder.fields}"/>
+                       </apex:selectList>
+                       <apex:selectList value="{!queryBuilder.operatorValue5}" size="1">
+                           <apex:selectOptions value="{!queryBuilder.operators}"/>
+                       </apex:selectList>
+                       <apex:inputText value="{!queryBuilder.inputValue5}"/>
+                   </apex:panelGrid>
+              </apex:pageBlockSection>
+              <apex:pageBlockSection columns="1" rendered="{!queryBuilder.objectName != null}">
+                  <apex:panelGrid >
+                      <apex:dataList value="{!queryBuilder.notes}" var="note">
+                        <apex:outputText value="{!note}"/>
+                      </apex:dataList>
+                  </apex:panelGrid>
+              </apex:pageBlockSection>
+              <apex:pageBlockSection >
+              <apex:actionRegion rendered="{!queryBuilder.objectName != null}">
+                   <apex:outputText value="Limit number of records:  " style="font-weight:bold"/>
+                   <apex:selectList value="{!queryBuilder.recordLimit}" size="1">
+                       <apex:selectOption itemLabel="10" itemValue="10"/>
+                       <apex:selectOption itemLabel="25" itemValue="25"/>
+                       <apex:selectOption itemLabel="50" itemValue="50"/>
+                       <apex:selectOption itemLabel="100" itemValue="100"/>
+                       <apex:selectOption itemLabel="200" itemValue="200"/>
+                   </apex:selectList>
+               </apex:actionRegion>
+               </apex:pageBlockSection>
+               <apex:pageBlockSection columns="1" rendered="{!showQuery && queryBuilder.objectName != null}">
+                  <apex:panelGrid columns="2" cellspacing="5">
+                      <apex:pageMessage severity="info" summary="{!queryBuilder.queryString}"/>
+                  </apex:panelGrid>
+               </apex:pageBlockSection>
+               <apex:pageBlockButtons >
+                   <apex:commandButton value="Find" action="{!find}" disabled="{!queryBuilder.objectName == null}" rerender="searchFilter, searchResult"/>
+                   <apex:commandButton value="Cancel" action="{!cancel}" rerender="searchFilter, searchResult" style="margin-left: 1em"/>
+               </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+    <apex:form >
+        <apex:pageBlock title="Matching Records" id="searchResult" rendered="true"
+            helpTitle="Dupe Eliminator Help"
+            helpUrl="https://sites.secure.force.com/appexchange/content?contentId=a0K30000002BYXFEA4">
+              <apex:pageBlockSection rendered="{!renderResult}" columns="1">
+                  <apex:outputText value="{0} records found." style="color:red">
+                      <apex:param value="{!results.size}"/>
+                  </apex:outputText>
+                  <apex:outputText value="Please select up to three records that you wish to merge into one." rendered="{!results.size != 0}"/>
+              </apex:pageBlockSection>
+              <apex:pageBlockSection rendered="{!error != null}" columns="1">
+                   <apex:outputText value="Error: {!error}" style="font-weight:bold; color:red"/>
+              </apex:pageBlockSection>
+              <apex:pageBlockSection columns="1">
+                  <apex:dataTable value="{!results}" var="r" rendered="{!results.size != 0}" width="100%">
+                      <apex:column rendered="{!results.size != 0}">
+                          <apex:facet name="header">Select</apex:facet>
+                          <apex:inputCheckbox value="{!r.selected}"/>
+                      </apex:column>
+                      <apex:column rendered="{!results.size != 0 && queryBuilder.objectName == 'Account'}" >
+                          <apex:facet name="header">&nbsp;</apex:facet>
+                          <apex:image value="/img/icon/perAccounts16.gif" alt="Person Account" title="Person Account" rendered="{!r.isPersonAcc}"/>
+                      </apex:column>
+                      <apex:column rendered="{!results.size != 0}">
+                          <apex:facet name="header">{!queryBuilder.objectLabel}</apex:facet> 
+                          <apex:outputLink value="{!r.idRefUrl}">{!r.idRefName}</apex:outputLink>
+                      </apex:column>
+                      <apex:column rendered="{!queryBuilder.fieldName1 != null}">
+                          <apex:facet name="header">{!queryBuilder.fieldLabel1}</apex:facet>                         
+                          <apex:outputText value="{!r.field1.displayValue}" rendered="{!NOT(r.field1.isReference)}"/>
+                          <apex:outputLink value="{!r.field1.refUrl}" rendered="{!r.field1.isReference}">{!r.field1.refName}</apex:outputLink>
+                      </apex:column>
+                      <apex:column rendered="{!queryBuilder.fieldName2 != null}">
+                          <apex:facet name="header">{!queryBuilder.fieldLabel2}</apex:facet>
+                          <apex:outputText value="{!r.field2.displayValue}" rendered="{!NOT(r.field2.isReference)}"/>
+                          <apex:outputLink value="{!r.field2.refUrl}" rendered="{!r.field2.isReference}">{!r.field2.refName}</apex:outputLink>                          
+                      </apex:column>
+                      <apex:column rendered="{!queryBuilder.fieldName3 != null}">
+                          <apex:facet name="header">{!queryBuilder.fieldLabel3}</apex:facet>
+                          <apex:outputText value="{!r.field3.displayValue}" rendered="{!NOT(r.field3.isReference)}"/>
+                          <apex:outputLink value="{!r.field3.refUrl}" rendered="{!r.field3.isReference}">{!r.field3.refName}</apex:outputLink>                          
+                      </apex:column>
+                      <apex:column rendered="{!queryBuilder.fieldName4 != null}">
+                          <apex:facet name="header">{!queryBuilder.fieldLabel4}</apex:facet>
+                          <apex:outputText value="{!r.field4.displayValue}" rendered="{!NOT(r.field4.isReference)}"/>
+                          <apex:outputLink value="{!r.field4.refUrl}" rendered="{!r.field4.isReference}">{!r.field4.refName}</apex:outputLink>                           
+                      </apex:column>
+                      <apex:column rendered="{!queryBuilder.fieldName5 != null}">
+                          <apex:facet name="header">{!queryBuilder.fieldLabel5}</apex:facet>    
+                          <apex:outputText value="{!r.field5.displayValue}" rendered="{!NOT(r.field5.isReference)}"/>
+                          <apex:outputLink value="{!r.field5.refUrl}" rendered="{!r.field5.isReference}">{!r.field5.refName}</apex:outputLink>                           
+                      </apex:column>
+                  </apex:dataTable>
+              </apex:pageBlockSection>
+              <apex:pageBlockButtons >
+                   <apex:commandButton value="Select" action="{!selectMerge}" rendered="{!results.size != 0}"/>
+                   <apex:commandButton value="Cancel" action="{!cancel}" rendered="{!results.size != 0}" rerender="searchFilter, searchResult" style="margin-left: 1em"/>
+              </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

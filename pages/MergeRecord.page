@@ -1,0 +1,104 @@
+<apex:page controller="SearchMergeController" title="Dupe Eliminator" tabStyle="Dupe_Eliminator__tab" showHeader="{!NOT(hideHeader)}" sidebar="{!NOT(hideSidebar)}">
+    <apex:form >
+        <apex:pageBlock title="Merge Records" id="mergeRecords"
+            helpTitle="Dupe Eliminator Help"
+            helpUrl="https://sites.secure.force.com/appexchange/content?contentId=a0K30000002BYXFEA4">
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Previous" action="{!previous}"/>
+                <apex:commandButton value="Merge" action="{!doMerge}" style="margin-left: 1em"
+                    onclick="return window.confirm('These records will be merged into one record using the selected values. Merging cannot be undone. Proceed with the record merge?');"/>
+                <apex:commandButton value="Cancel" action="{!cancel2}" style="margin-left: 1em"/>
+            </apex:pageBlockButtons>
+            <apex:pageMessages />
+            <apex:pageBlockSection columns="1" id="mergeSettings">
+                <apex:outputText value="Merge Settings" style="font-weight:bold" />
+                <apex:panelGrid columns="2">
+                    <apex:inputCheckbox value="{!showMasterAfterMerge}" id="showMasterCheckbox"
+                        title="If this is enabled, page is redirected to master record detail page after merge."/>
+                    <apex:outputLabel value="Show master record after merge" for="showMasterCheckbox"/>
+                    <apex:inputCheckbox value="{!cloneNonReparentableChild}" id="cloneCheckbox"
+                        title="If this is enabled, merge operation will attempt to clone any non-reparentable child records.">
+                        <apex:actionSupport event="onclick" action="{!clearChildSelection}" rerender="mergeSettings"/>
+                     </apex:inputCheckbox>
+                    <apex:outputLabel value="Clone non-reparentable child records" for="cloneCheckbox"/>
+                </apex:panelGrid>
+                <apex:panelGrid columns="1" id="childSelection" rendered="{!cloneNonReparentableChild}">
+                    <apex:outputText value="You can select up to 10 child relationships:"  style="font-style:italic" rendered="{!childRelationshipSelection.size != 0}"/>
+                    <apex:outputText value="{!queryBuilder.objectLabel} does not have any non-reparentable child relationships"  style="font-style:italic" rendered="{!childRelationshipSelection.size == 0}"/>
+                    <apex:selectCheckboxes value="{!childRelationships}" layout="pageDirection">
+                        <apex:selectOptions value="{!childRelationshipSelection}"/>
+                    </apex:selectCheckboxes>
+                </apex:panelGrid>
+            </apex:pageBlockSection>
+            <p/>
+            <hr/>
+            <p/>
+            <apex:pageMessage severity="info" summary="Click on the record header to select all fields"/>
+            <apex:pageBlockSection columns="1" id="mergeDataTable">
+                <apex:panelGrid columns="4" width="100%">
+                <apex:dataTable var="f" value="{!fieldLabels}" rules="rows" width="100%">
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputText value="Field Name"/>
+                        </apex:facet>
+                        <apex:selectRadio disabled="true">
+                            <apex:selectOption itemValue="true" itemLabel="{!f}" itemEscaped="false"/>
+                        </apex:selectRadio>
+                    </apex:column>
+                </apex:dataTable>
+                <apex:dataTable var="f" value="{!mergeRecord1.fields}" rendered="{!NOT(ISNULL(mergeRecord1))}"
+                    rules="rows" width="100%">
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink value="{!queryBuilder.objectLabel} 1" action="{!doSelectRecord}" rerender="mergeRecords">
+                                <apex:param name="selectedRecord" assignto="{!selectedRecord}" value="{!mergeRecord1.ID}"/>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:selectRadio value="{!f.selected}" disabled="{!NOT(f.isChangeable)}">
+                            <apex:selectOption itemValue="true" itemLabel="{!f.displayValue}" itemEscaped="false"/>
+                            <apex:actionSupport rerender="mergeDataTable" event="onclick" action="{!doSelectField}">
+                                <apex:param name="selectedRecord" assignto="{!selectedRecord}" value="{!mergeRecord1.ID}"/>
+                                <apex:param name="selectedField" assignto="{!selectedField}" value="{!f.name}"/>
+                             </apex:actionSupport>
+                        </apex:selectRadio>
+                    </apex:column>
+                </apex:dataTable>
+                <apex:dataTable var="f" value="{!mergeRecord2.fields}" rendered="{!NOT(ISNULL(mergeRecord2))}"
+                    rules="rows" width="100%">
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink value="{!queryBuilder.objectLabel} 2" action="{!doSelectRecord}" rerender="mergeRecords">
+                                <apex:param assignto="{!selectedRecord}" value="{!mergeRecord2.ID}"/>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:selectRadio value="{!f.selected}" disabled="{!NOT(f.isChangeable)}">
+                            <apex:selectOption itemValue="true" itemLabel="{!f.displayValue}" itemEscaped="false"/>
+                            <apex:actionSupport rerender="mergeDataTable" event="onclick" action="{!doSelectField}">
+                                <apex:param name="selectedRecord" assignto="{!selectedRecord}" value="{!mergeRecord2.ID}"/>
+                                <apex:param name="selectedField" assignto="{!selectedField}" value="{!f.name}"/>
+                             </apex:actionSupport>
+                        </apex:selectRadio>
+                    </apex:column>
+                </apex:dataTable>
+                <apex:dataTable var="f" value="{!mergeRecord3.fields}" rendered="{!NOT(ISNULL(mergeRecord3))}"
+                    rules="rows" width="100%">
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink value="{!queryBuilder.objectLabel} 3" action="{!doSelectRecord}" rerender="mergeRecords">
+                                <apex:param assignto="{!selectedRecord}" value="{!mergeRecord3.ID}"/>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:selectRadio value="{!f.selected}" disabled="{!NOT(f.isChangeable)}">
+                            <apex:selectOption itemValue="true" itemLabel="{!f.displayValue}" itemEscaped="false"/>
+                            <apex:actionSupport rerender="mergeDataTable" event="onclick" action="{!doSelectField}">
+                                <apex:param name="selectedRecord" assignto="{!selectedRecord}" value="{!mergeRecord3.ID}"/>
+                                <apex:param name="selectedField" assignto="{!selectedField}" value="{!f.name}"/>
+                             </apex:actionSupport>
+                        </apex:selectRadio>
+                    </apex:column>
+                </apex:dataTable>
+                </apex:panelGrid>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>
