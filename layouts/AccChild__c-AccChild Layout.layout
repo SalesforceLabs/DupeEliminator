@@ -10,15 +10,11 @@
                 <behavior>Required</behavior>
                 <field>Name</field>
             </layoutItems>
-            <layoutItems>
-                <behavior>Required</behavior>
-                <field>Account__c</field>
-            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
-                <behavior>Edit</behavior>
-                <field>CurrencyIsoCode</field>
+                <behavior>Required</behavior>
+                <field>Account__c</field>
             </layoutItems>
         </layoutColumns>
         <style>TwoColumnsTopToBottom</style>
